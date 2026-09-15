@@ -2,7 +2,7 @@
 name: resume-generator
 description: |
   校招简历生成器——分析候选人背景与JD，生成定制化单页中文简历PDF。
-  工作流：事实库核对 → JD竞争策略(拆解/路由/Winning Thesis/Evidence Map) → MD简历 → Python构建脚本 → Chrome headless PDF → 质检Reviewer。
+  工作流：事实库核对 → JD竞争策略(拆解/路由/Winning Thesis/Evidence Map) → MD简历 → Python构建脚本 → Chrome headless PDF → PDF转PNG视觉自查 → 质检Reviewer。
   自动触发：用户发送JD链接/文本并要求"帮我看看适合吗""生成简历""制作简历""投递这个岗位"；用户讨论岗位匹配度并决定投递；用户要求"出简历""写简历"；用户要求质检/Review简历。
   注意：简历走Python+Chrome headless通道（单页HTML渲染），不走md2pdf的TEX通道。
   设计借鉴 changocr/autumn-recruitment-resume-ai-system：事实库唯一事实源 + 竞争策略 + 行业路由 + 表达保护 + 独立质检。
@@ -157,6 +157,25 @@ cd "{输出目录}" && python3 build_resume_{shortname}.py
 ```
 - 确认输出为1页
 - 确认文件大小在合理范围（示例 400-500KB）
+
+**视觉自查（必做）**：脚本只报页数和体积，**报不出排版问题**。渲染成 PNG 后**用 Read 工具直接读图**（模型有原生识图能力时直接读即可；若所用模型不支持图片输入，才退回本地 vision 模型）：
+
+```bash
+cd "{输出目录}" && pdftoppm -png -r 110 "个人简历-{公司}{岗位}.pdf" /tmp/resumecheck
+```
+
+然后 `Read /tmp/resumecheck-1.png`，逐条确认：
+
+| 检查项 | 为什么 |
+|---|---|
+| 文字/照片是否超出页面边界或被裁切 | 单页简历栏宽紧，最易右溢出 |
+| 底部是否有大块空白、内容是否挤到紧贴底边 | 内容量卡在临界点时最常崩 |
+| 右上角照片是否正常（非空白框/变形） | 照片是相对路径，路径错会静默丢图 |
+| 区块标题层级是否清晰、有无错位 | 浮动元素串行会导致错位 |
+| 有无乱码、方框、重影 | 字体缺失的表现 |
+
+发现问题 → 回 Step 2 改 MD → 重跑脚本 → **重新读图复查**，直到干净。查完 `rm -f /tmp/resumecheck-*.png`。
+
 - 报出PDF路径
 
 ### Step 5 质检Reviewer（独立只读）
@@ -209,5 +228,9 @@ ul { margin-bottom: 0; }
 - [ ] 最强2–3个信号是否足够突出（Winning Thesis可读）
 - [ ] 没有重复信号、没有把最强成果写弱
 - [ ] PDF为1页
+- [ ] 从MD读HTML渲染时，必须用 `<!DOCTYPE html><html><head>` 完整文档包裹（缺DOCTYPE时Chrome走quirks mode，可能产生空白第二页——实测踩坑）
 - [ ] 照片正常显示
 - [ ] 中文引号正确（避免"被转义为``）
+- [ ] **已转 PNG 并用 Read 工具读图视觉自查（Step 4）**
+- [ ] 自查发现的问题已修复并**重新读图复查**通过
+- [ ] 临时 PNG 已清理（`rm -f /tmp/resumecheck-*.png`）

@@ -2,7 +2,7 @@
 name: md2pdf
 description: |
   将 Markdown 文档转换为专业排版的中文 PDF——严格遵循 TFP 测度方法详解的排版风格。
-  工作流：MD（内容草稿）→ TEX（ctexart 排版）→ PDF（xelatex 编译）。
+  工作流：MD（内容草稿）→ TEX（ctexart 排版）→ PDF（xelatex 编译）→ PDF 转 PNG 视觉自查。
   自动触发：用户要求"生成 PDF""排版""转为 PDF""输出为 PDF""按 TFP 格式输出"等。
 ---
 
@@ -180,9 +180,40 @@ description: |
 cd <tex文件所在目录> && xelatex -interaction=nonstopmode <文件名>.tex && xelatex -interaction=nonstopmode <文件名>.tex
 ```
 - 编译两遍：第一遍生成目录/交叉引用，第二遍写入
-- 编译后清理辅助文件（.aux, .log, .out, .toc），保留 .tex 和 .pdf
+- **编译后完整清理临时文件**（用户约定，2026-09-03）：`.aux .log .out .toc .synctex.gz texput.log` 及 macOS 的 `.DS_Store`，保留 `.tex` 和 `.pdf`
+- 完整清理命令：`rm -f *.aux *.log *.out *.toc *.synctex.gz texput.log .DS_Store`
 
-### Step 4: 输出
+### Step 4: 视觉自查（必做，2026-09-15 起）
+
+**为什么要做**：编译成功 ≠ 排版正确。必须把 PDF 渲染成 PNG 实际"看"一眼，才能发现溢出、断页、字体等肉眼级问题。
+
+**依赖**：`poppler`（提供 `pdftoppm`）。若 `which pdftoppm` 为空，先 `brew install poppler`。
+
+```bash
+# 1. 逐页渲染为 PNG（110 dpi 足够看清排版，且体积可控）
+pdftoppm -png -r 110 <文件名>.pdf /tmp/pdfcheck
+```
+
+**2. 用 Read 工具逐页读图**（DeepSeek 有原生识图，直接 `Read /tmp/pdfcheck-1.png` 即可）。**不要调 `vision.js`**——本地 gemma 在中文密集排版上会编造标题（实测把"教育经历/实习经历"幻觉成"面试专才/实况技术"），比直接读图差。
+
+**3. 对照下面「自查要点」表逐条检查**，多页时对每一页重复第 2、3 步。
+
+**自查要点**（对照 Step 3 的编译输出逐条确认）：
+
+| 检查项 | 常见症状 | 对应修法 |
+|---|---|---|
+| 表格溢出 | 最后一列被右边界截断 | 调 `p{}` 列宽比例，或加 `\small` |
+| 表格跨页 | 表格被拦腰劈开 | 加 `\begin{longtable}` 或调整位置 |
+| 标题孤立 | 标题落在页尾、内容在次页 | 手动 `\newpage` 或调内容顺序 |
+| 代码块断行 | 长行溢出边框 | 确认用了 `fvextra` + `breaklines` |
+| 字体异常 | 方框、乱码、缺字 | 检查字体是否装了，或字符是否需转义 |
+| 目录页码 | 页码与实际不符 | 确认编译了两遍 xelatex |
+
+**4. 清理临时图片**：`rm -f /tmp/pdfcheck-*.png`
+
+**发现问题时**：回到 Step 2 改 TEX → 重新编译 → **重新自查**，直到干净为止。不要跳过复查直接交付。
+
+### Step 5: 输出
 - 将 PDF 路径告知用户
 - 如果用户要求调整格式，修改 TEX 文件后重新编译
 
@@ -194,3 +225,6 @@ cd <tex文件所在目录> && xelatex -interaction=nonstopmode <文件名>.tex &
 - [ ] 中文引号正确转义
 - [ ] 编译两遍 xelatex
 - [ ] PDF 可正常打开
+- [ ] **已用 `pdftoppm` 转 PNG 并用 Read 工具逐页视觉自查（Step 4）**
+- [ ] 自查发现的排版问题已修复并**重新自查**通过
+- [ ] 临时 PNG 已清理（`rm -f /tmp/pdfcheck-*.png`）
