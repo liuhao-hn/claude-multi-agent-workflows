@@ -208,52 +208,67 @@ npm install -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.c
 
 Skill 是别人配置好的专属 AI 能力，导入后 Claude Code 会自动识别并加载。
 
-### 7.1 获取 Skill 包
+### 7.1 获取 Skill
 
-你会拿到一个 `claude-skills-export.tar.gz` 文件，把它放到桌面上。
-
-### 7.2 解压安装
-
-**Mac 用户——打开终端，输入：**
+本仓库的技能直接来自 GitHub，不需要压缩包：
 
 ```bash
-tar -xzf ~/Desktop/claude-skills-export.tar.gz -C ~/.claude/skills/
+git clone https://github.com/liuhao-hn/claude-multi-agent-workflows.git ~/claude-multi-agent-workflows
 ```
 
-**Windows 用户——打开 PowerShell，输入：**
+### 7.2 安装
+
+**Mac / Linux——打开终端，输入：**
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r ~/claude-multi-agent-workflows/skills/* ~/.claude/skills/
+```
+
+**Windows——打开 PowerShell，输入：**
 
 ```powershell
-tar -xzf "$env:USERPROFILE\Desktop\claude-skills-export.tar.gz" -C "$env:USERPROFILE\.claude\skills\"
+git clone https://github.com/liuhao-hn/claude-multi-agent-workflows.git "$env:USERPROFILE\claude-multi-agent-workflows"
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\skills"
+Copy-Item "$env:USERPROFILE\claude-multi-agent-workflows\skills\*" "$env:USERPROFILE\.claude\skills\" -Recurse
 ```
 
-> 如果 Windows 提示找不到 tar 命令，先安装 7-Zip 手动解压，再把解压出的 4 个文件夹复制到 `C:\Users\你的用户名\.claude\skills\` 目录下。
+> 只想装其中几个：把 `skills/*` 换成具体的技能目录名即可。也可以用软链（`ln -s`）指向仓库，这样改一次仓库本地立即生效。
 
 ### 7.3 验证
 
-解压完成后，确保目录结构像这样：
+安装完成后，确保目录结构像这样：
 
 ```
 ~/.claude/skills/
-├── academic-search/
-│   └── SKILL.md
 ├── coder-critic-review-team/
 │   └── SKILL.md
-├── deeppapernote/
+├── commander-executor/
 │   └── SKILL.md
-└── gaodun-essay-grader/
+├── gaodun-essay-grader/
+│   └── SKILL.md
+├── md2pdf/
+│   └── SKILL.md
+├── resume-generator/
+│   └── SKILL.md
+└── workflow-to-skill/
     └── SKILL.md
 ```
 
 重启 Claude Code 后，输入对话触发相应功能即可自动加载 Skill。
 
-### 7.4 本 Skill 包包含的能力
+### 7.4 本仓库包含的能力
 
 | Skill | 说明 |
 | :--- | :--- |
-| `academic-search` | 经济学论文搜索、引用分析，支持中英文多平台（arXiv、SSRN、NBER、知网等） |
-| `coder-critic-review-team` | 多 Agent 代码审查协作工作流 |
-| `deeppapernote` | 论文深度阅读笔记生成（输出 Obsidian 格式） |
+| `commander-executor` | 多 Agent 分工总控（指挥官 + 外部执行者，TASKS.md 黑板 + 规则总线） |
+| `resume-generator` | 校招简历生成（**模板版**）：事实库 → 竞争策略 → 质检 → 单页中文 PDF |
 | `gaodun-essay-grader` | 申论大作文五维度批改（40分制评分体系） |
+| `md2pdf` | MD → TEX → 专业中文 PDF 排版（ctexart + booktabs） |
+| `coder-critic-review-team` | 多 Agent 代码审查协作工作流 |
+| `workflow-to-skill` | 工作流自动沉淀引擎（任务结束 → 生成 Skill → 更新 Memory） |
+
+> 想要更多 Skill？官方与第三方插件可用 `/plugin marketplace add` 直接安装（如 Anthropic 官方插件、MiniMax Skills），无需手动拷贝。
 
 ---
 
@@ -308,6 +323,6 @@ Set-ExecutionPolicy RemoteSigned
 | ☐ | Claude Code 插件已安装 |
 | ☐ | DeepSeek API Key 已配置到 settings.json |
 | ☐ | 启动后输入"你好"得到 AI 回复 |
-| ☐ | Skill 包已解压到 `~/.claude/skills/` 目录 |
+| ☐ | Skill 已安装到 `~/.claude/skills/` 目录（每个技能含 `SKILL.md`）|
 
 全部打勾？恭喜，配置完成！
