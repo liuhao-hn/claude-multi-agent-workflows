@@ -104,19 +104,18 @@ description: |
 
 ## 已沉淀的 Skill 列表
 
-维护在 `~/.claude/skills/` 下，当前已有：
+本仓库 `skills/` 下现有：
 
 | Skill | 用途 |
 |---|---|
-| `academic-search` | 经济学论文搜索 |
 | `coder-critic-review-team` | 多 Agent 代码审查 |
 | `commander-executor` | 指挥官—多执行者分工工作流 |
-| `deeppapernote` | 论文深度阅读笔记 |
 | `gaodun-essay-grader` | 申论大作文批改 |
-| `job-scrape-match` | 校招岗位全量抓取 + 硬门槛匹配分析 |
 | `md2pdf` | MD→TEX→PDF 专业排版 |
-| `resume-generator` | 校招定制简历生成（PDF） |
-| `xingce-note-generator` | 行测各模块讲义生成 |
+| `resume-generator` | 校招定制简历生成（PDF，**模板版**） |
+| `workflow-to-skill` | 工作流沉淀 |
+
+> 作者本机另有若干自用 skill（含个人数据与创作素材），未随本仓库发布，故不在此列出。
 
 ## 示例：本次 md2pdf 工作流的沉淀过程
 
